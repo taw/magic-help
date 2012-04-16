@@ -69,7 +69,7 @@ end
 #  help { Array }       - help on Array
 #  help { [] }          - help on Array
 #  help { Dir["*"] }    - help on Dir::[]
-def magic_help(*args)
+def help(*args)
     raise ArgumentError, "wrong number of arguments (#{args.size} for 1)" if args.size > 1
     raise ArgumentError, "help cannot take both arguments and block" if args.size > 0 and block_given?
 

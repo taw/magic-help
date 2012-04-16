@@ -1,4 +1,4 @@
-#!/usr/bin/ruby -Ilib
+#!/usr/bin/env ruby -Ilib
 
 require 'test/unit'
 require 'magic_help'
