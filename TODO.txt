@@ -1,0 +1,5 @@
+* Make it work, the code is from 2006 and for Ruby 1.8.4
+* Make tests work well
+* 1.8.7 / 1.9 compatibility
+* Publish a gem
+* Announce the project everywhere relevant (especially my blog)
