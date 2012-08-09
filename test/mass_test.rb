@@ -9,17 +9,17 @@ require 'magic_help'
 $irb_help = nil
 
 class Object
-    def irb_help(arg)
-        $irb_help = arg
-    end
+  def irb_help(arg)
+    $irb_help = arg
+  end
 end
 
 # A convenience method
 def try_help(*args, &blk)
-    $irb_help = nil
-    help(*args, &blk)
-    rv, $irb_help = $irb_help, nil
-    rv
+  $irb_help = nil
+  help(*args, &blk)
+  rv, $irb_help = $irb_help, nil
+  rv
 end
 
 # Extract documentation
@@ -33,22 +33,22 @@ docs_imeth = []
 docs_cmeth = []
 
 docs.each{|fn|
-    next if File.directory?(fn)
-    raise "Weird path: #{fn}" unless fn[0, ri_root_path.size] == ri_root_path
-    fn = fn[ri_root_path.size..-1].sub(/^\/*/, "")
-    # gsub after split to deal with Fixnum#/ etc.
-    path = fn.split(/\//).map{|x| x.gsub(/%(..)/){$1.hex.chr}}
-    case path[-1]
-    when /\A(.*)-i\.yaml\Z/
-        docs_imeth << path[0..-2] + [$1]
-    when /\A(.*)-c\.yaml\Z/
-        docs_cmeth << path[0..-2] + [$1]
-    when /\Acdesc-(.*)\.yaml\Z/
-        raise "Malformatted file name: #{fn}" unless $1 == path[-2]
-        docs_class << path[0..-2]
-    else
-        # Ignore
-    end
+  next if File.directory?(fn)
+  raise "Weird path: #{fn}" unless fn[0, ri_root_path.size] == ri_root_path
+  fn = fn[ri_root_path.size..-1].sub(/^\/*/, "")
+  # gsub after split to deal with Fixnum#/ etc.
+  path = fn.split(/\//).map{|x| x.gsub(/%(..)/){$1.hex.chr}}
+  case path[-1]
+  when /\A(.*)-i\.yaml\Z/
+    docs_imeth << path[0..-2] + [$1]
+  when /\A(.*)-c\.yaml\Z/
+    docs_cmeth << path[0..-2] + [$1]
+  when /\Acdesc-(.*)\.yaml\Z/
+    raise "Malformatted file name: #{fn}" unless $1 == path[-2]
+    docs_class << path[0..-2]
+  else
+    # Ignore
+  end
 }
 
 # Go over documentation
@@ -59,25 +59,25 @@ cl_fc = []
 cl_fi = []
 
 docs_class.each{|class_path|
-    class_name = class_path.join("::")
-    begin
-        cls = class_path.inject(Object){|cls,path_elem| cls.const_get(path_elem)}
-    rescue NameError
-        rv = try_help class_name
-        if rv == class_name
-            cl_nc << class_name
-        else
-            cl_ni << [class_name, rv]
-        end
-        next
-    end
-    rv1  = try_help class_name
-    rv2 = try_help cls
-    if rv1 == class_name && rv2 == class_name
-        cl_fc << class_name
+  class_name = class_path.join("::")
+  begin
+    cls = class_path.inject(Object){|cls,path_elem| cls.const_get(path_elem)}
+  rescue NameError
+    rv = try_help class_name
+    if rv == class_name
+      cl_nc << class_name
     else
-        cl_fi << [class_name, rv1, rv2]
+      cl_ni << [class_name, rv]
     end
+    next
+  end
+  rv1  = try_help class_name
+  rv2 = try_help cls
+  if rv1 == class_name && rv2 == class_name
+    cl_fc << class_name
+  else
+    cl_fi << [class_name, rv1, rv2]
+  end
 }
 
 print <<EOS
@@ -89,10 +89,10 @@ Class documentation:
 * #{cl_ni.size} could not be verified (seem bad)
 EOS
 if cl_fi.size != 0
-    puts "\nIncorrect:"
-    cl_fi.each{|ex,rv1,rv2|
-        puts "* #{ex} - #{rv1}/#{rv2}"
-    }
+  puts "\nIncorrect:"
+  cl_fi.each{|ex,rv1,rv2|
+    puts "* #{ex} - #{rv1}/#{rv2}"
+  }
 end
 
 cm_nc = [] # Class not found
@@ -101,29 +101,29 @@ cm_fc = []
 cm_fi = []
 
 docs_cmeth.each{|path|
-    class_path, method_name = path[0..-2], path[-1]
-    class_name = class_path.join("::")
-    begin
-        cls = class_path.inject(Object){|cls,path_elem| cls.const_get(path_elem)}
-    rescue NameError
-        expected = "#{class_name}::#{method_name}"
-        rv = try_help expected
-        if rv == expected
-            cm_nc << expected
-        else
-            cm_ni << [expected, rv]
-        end
-        next
-    end
+  class_path, method_name = path[0..-2], path[-1]
+  class_name = class_path.join("::")
+  begin
+    cls = class_path.inject(Object){|cls,path_elem| cls.const_get(path_elem)}
+  rescue NameError
     expected = "#{class_name}::#{method_name}"
-    rv1 = try_help "#{class_name}::#{method_name}"
-    # cls.send(:method_name) would find help for Object#send ...
-    rv2 = eval "try_help { cls.#{method_name}() }"
-    if rv1 == expected && rv2 == expected
-        cm_fc << expected
+    rv = try_help expected
+    if rv == expected
+      cm_nc << expected
     else
-        cm_fi << [expected, rv1, rv2]
+      cm_ni << [expected, rv]
     end
+    next
+  end
+  expected = "#{class_name}::#{method_name}"
+  rv1 = try_help "#{class_name}::#{method_name}"
+  # cls.send(:method_name) would find help for Object#send ...
+  rv2 = eval "try_help { cls.#{method_name}() }"
+  if rv1 == expected && rv2 == expected
+    cm_fc << expected
+  else
+    cm_fi << [expected, rv1, rv2]
+  end
 }
 
 print <<EOS
@@ -136,10 +136,10 @@ Class method documentation:
 * #{cm_ni.size} could not be verified (seem bad)
 EOS
 if cm_fi.size != 0
-    puts "\nIncorrect:"
-    cm_fi.each{|ex,rv1,rv2|
-        puts "* #{ex} - #{rv1}/#{rv2}"
-    }
+  puts "\nIncorrect:"
+  cm_fi.each{|ex,rv1,rv2|
+    puts "* #{ex} - #{rv1}/#{rv2}"
+  }
 end
 
 # And instance methods
@@ -150,30 +150,30 @@ im_fc = []
 im_fi = []
 
 docs_imeth.each{|path|
-    class_path, method_name = path[0..-2], path[-1]
-    class_name = class_path.join("::")
-    begin
-        cls = class_path.inject(Object){|cls,path_elem| cls.const_get(path_elem)}
-    rescue NameError
-        expected = "#{class_name}.#{method_name}"
-        rv = try_help expected
-        if rv == expected
-            im_nc << expected
-        else
-            im_ni << [expected, rv]
-        end
-        next
-    end
-    expected = "#{class_name}##{method_name}"
-    rv1 = try_help "#{class_name}##{method_name}"
-    # We don't know how to create a real cls object.
-    # We could try some hacks or mock objects later.
-
-    if rv1 == expected
-        im_fc << expected
+  class_path, method_name = path[0..-2], path[-1]
+  class_name = class_path.join("::")
+  begin
+    cls = class_path.inject(Object){|cls,path_elem| cls.const_get(path_elem)}
+  rescue NameError
+    expected = "#{class_name}.#{method_name}"
+    rv = try_help expected
+    if rv == expected
+      im_nc << expected
     else
-        im_fi << [expected, rv1]
+      im_ni << [expected, rv]
     end
+    next
+  end
+  expected = "#{class_name}##{method_name}"
+  rv1 = try_help "#{class_name}##{method_name}"
+  # We don't know how to create a real cls object.
+  # We could try some hacks or mock objects later.
+
+  if rv1 == expected
+    im_fc << expected
+  else
+    im_fi << [expected, rv1]
+  end
 }
 
 print <<EOS
@@ -186,10 +186,10 @@ Instance method documentation:
 * #{im_ni.size} could not be verified (seem bad)
 EOS
 if im_fi.size != 0
-    puts "\nIncorrect:"
-    im_fi.each{|ex,rv1|
-        puts "* #{ex} - #{rv1}"
-    }
+  puts "\nIncorrect:"
+  im_fi.each{|ex,rv1|
+    puts "* #{ex} - #{rv1}"
+  }
 end
 
 print <<EOS
