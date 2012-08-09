@@ -26,32 +26,36 @@ def help_hacks(m, res=nil)
   # * Class#new is used
   # * Bar::new is used, for Bar being some ancestor of Foo
   elsif res and (m =~ /\A(.*)\#new\Z/ or m =~ /\A(.*)::new\Z/)
-      cls = $1
-      # Do not correct requests for Foo#new
-      # If Foo#new became Class#new, it must have been
-      # by some evil metaclass hackery.
-      #
-      # Foo.new or Foo::new both become Foo::new
-      if res =~ /\A(.*)(::|\.)new\Z/
-          cls_requested, k = $1, $2
-          # Condition just to get "Class#new" working correctly
-          # Otherwise it would be changed to "Class::new"
-          m = "#{cls_requested}::new" unless cls == cls_requested
-      end
+    cls = $1
+    # Do not correct requests for Foo#new
+    # If Foo#new became Class#new, it must have been
+    # by some evil metaclass hackery.
+    #
+    # Foo.new or Foo::new both become Foo::new
+    if res =~ /\A(.*)(::|\.)new\Z/
+      cls_requested, k = $1, $2
+      # Condition just to get "Class#new" working correctly
+      # Otherwise it would be changed to "Class::new"
+      m = "#{cls_requested}::new" unless cls == cls_requested
+    end
   end
   
   # Most Kernel methods are documented as if they were Object methods.
   # * private are in Kernel (except for four below)
   # * public are in Object (all of them)
-  if m =~ /\AKernel(\#|::|\.)([^\#\:\.]+)\Z/
-    k, mn = $1, $2
-    exceptions = ["singleton_method_added", "remove_instance_variable", "singleton_method_removed", "singleton_method_undefined"]
-    correctly_located_docs = Kernel.private_instance_methods - exceptions
-    unless correctly_located_docs.include?(mn)
-      m = "Object#{k}#{mn}"
+  if RUBY_VERSION > '1.9'
+    # Ruby 1.9 hacks go here
+  else
+    if m =~ /\AKernel(\#|::|\.)([^\#\:\.]+)\Z/
+      k, mn = $1, $2
+      exceptions = ["singleton_method_added", "remove_instance_variable", "singleton_method_removed", "singleton_method_undefined"]
+      correctly_located_docs = Kernel.private_instance_methods - exceptions
+      unless correctly_located_docs.include?(mn)
+        m = "Object#{k}#{mn}"
+      end
     end
   end
-          
+  
   m
 end
 
@@ -79,10 +83,11 @@ def help(*args)
     done = false
     res_mm = nil
     argument_error = false
+    base_level_module = (RUBY_VERSION > '1.9' ? BasicObject : Kernel)
     
     # We want to capture calls to method_missing too
-    original_method_missing = Kernel.instance_method(:method_missing)
-    Kernel.class_eval {
+    original_method_missing = base_level_module.instance_method(:method_missing)
+    base_level_module.class_eval {
       def method_missing(*args)
         throw :magically_irb_helped, [self, *args]
       end
@@ -108,7 +113,7 @@ def help(*args)
         else
           done = true
           # Let Kernel#method_missing run, otherwise throw
-          unless call_event.values_at(0, 3, 5) == ['call', :method_missing, Kernel]
+          unless call_event.values_at(0, 3, 5) == ['call', :method_missing, base_level_module]
             throw :magically_irb_helped
           end
         end
@@ -122,7 +127,7 @@ def help(*args)
     }
     done = true
     set_trace_func nil
-    Kernel.instance_eval {
+    base_level_module.instance_eval {
       define_method(:method_missing, original_method_missing)
       # It was originally private, restore it as such
       private :method_missing

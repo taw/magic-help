@@ -24,7 +24,14 @@ end
 
 # Extract documentation
 
-ri_root_path = ARGV.shift || "/usr/share/ri/1.8/system"
+# FIXME: Hardcoded paths are not cross-platform compatible
+if RUBY_VERSION > '1.9'
+  default_ri_root_path = "/usr/share/ri/1.9/system"
+  default_ri_root_path = "/home/taw/local/ruby1.9.3/share/ri/1.9.1/system/" # OSX ...
+else
+  default_ri_root_path = "/usr/share/ri/1.8/system"
+end
+ri_root_path = ARGV.shift || default_ri_root_path
 
 docs = Dir["#{ri_root_path}/**/*"]
 
@@ -39,11 +46,11 @@ docs.each{|fn|
   # gsub after split to deal with Fixnum#/ etc.
   path = fn.split(/\//).map{|x| x.gsub(/%(..)/){$1.hex.chr}}
   case path[-1]
-  when /\A(.*)-i\.yaml\Z/
+  when /\A(.*)-i\.(yaml|ri)\Z/
     docs_imeth << path[0..-2] + [$1]
-  when /\A(.*)-c\.yaml\Z/
+  when /\A(.*)-c\.(yaml|ri)\Z/
     docs_cmeth << path[0..-2] + [$1]
-  when /\Acdesc-(.*)\.yaml\Z/
+  when /\Acdesc-(.*)\.(yaml|ri)\Z/
     raise "Malformatted file name: #{fn}" unless $1 == path[-2]
     docs_class << path[0..-2]
   else
