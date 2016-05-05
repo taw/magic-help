@@ -39,7 +39,7 @@ def help_hacks(m, res=nil)
       m = "#{cls_requested}::new" unless cls == cls_requested
     end
   end
-  
+
   # Most Kernel methods are documented as if they were Object methods.
   # * private are in Kernel (except for four below)
   # * public are in Object (all of them)
@@ -55,7 +55,7 @@ def help_hacks(m, res=nil)
       end
     end
   end
-  
+
   m
 end
 
@@ -84,7 +84,7 @@ def help(*args)
     res_mm = nil
     argument_error = false
     base_level_module = (RUBY_VERSION > '1.9' ? BasicObject : Kernel)
-    
+
     # We want to capture calls to method_missing too
     original_method_missing = base_level_module.instance_method(:method_missing)
     base_level_module.class_eval {

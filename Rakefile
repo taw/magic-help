@@ -20,20 +20,10 @@ task :package do
 end
 
 desc "Run tests with default Ruby"
-task :test18 do
+task :test do
   sh "test/tc_magic_help.rb"
   sh "test/mass_test.rb"
 end
-
-desc "Run tests with Ruby 1.9"
-task :test19 do
-  ruby_bin = "ruby1.9"
-  sh ruby_bin, "test/tc_magic_help.rb"
-  sh ruby_bin, "test/mass_test.rb", "/usr/share/ri/1.9/system"
-end
-
-desc "Run all tests with Ruby default (1.8.7)/1.9"
-task :test => [:test18, :test19]
 
 desc "Clean generated files"
 task :clean do

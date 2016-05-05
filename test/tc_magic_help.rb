@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby -Ilib
 
-require 'test/unit'
+require 'minitest/autorun'
 require 'magic_help'
 require 'fileutils'
 
@@ -13,7 +13,7 @@ class Object
   end
 end
 
-class Test_Magic_Help < Test::Unit::TestCase
+class Test_Magic_Help < Minitest::Test
   def assert_irb_help(expected)
     $irb_help = nil
     yield
@@ -131,11 +131,11 @@ class Test_Magic_Help < Test::Unit::TestCase
     assert_irb_help("Class#superclass") { help { "Class.superclass" } }
     assert_irb_help("Class#superclass") { help { "Class::superclass" } }
   end
-  
+
   def test_class_new
     # Most classes do not override Class#new, but have
     # Documentation for Foo.new anyway (it actually documents Foo#initialize)
-    
+
     # First, handling of Class#new (default creator of instances)
     # and Class::new (creator of new classses)
     assert_irb_help("Class::new") { help { Class.new } }
@@ -143,17 +143,17 @@ class Test_Magic_Help < Test::Unit::TestCase
     assert_irb_help("Class#new")  { help "Class#new" }
     assert_irb_help("Class::new") { help "Class::new" }
     assert_irb_help("Class#new")  { help "Class.new" }
-    
+
     # Module::new is documented and it uses default Class#new
     assert_irb_help("Module::new") { help { Module.new } }
     assert_irb_help("Module::new") { help "Module.new" }
     assert_irb_help("Module::new") { help "Module::new" }
-    
+
     # IO::new is documented and it has separate implementation
     assert_irb_help("IO::new") { help { IO.new } }
     assert_irb_help("IO::new") { help "IO.new" }
     assert_irb_help("IO::new") { help "IO::new" }
-    
+
     # File::new is documented and it uses IO::new
     assert_irb_help("File::new") { help { File.new } }
     assert_irb_help("File::new") { help "File.new" }
@@ -164,7 +164,7 @@ class Test_Magic_Help < Test::Unit::TestCase
   # In the perfect world it should totally fail !!!
   def test_object_methods
     # Documentation mixes some Kernel and Object methods
-    
+
     # Ruby has Kernel#__id__ but documentation has Object#__id__
     assert_irb_help("Object#__id__") { help { __id__ } }
     assert_irb_help("Object#__id__") { help { 42.__id__ } }
@@ -172,14 +172,14 @@ class Test_Magic_Help < Test::Unit::TestCase
     assert_irb_help("Object#__id__") { help "Object.__id__" }
     assert_irb_help("Object#__id__") { help "Kernel#__id__" }
     assert_irb_help("Object#__id__") { help "Kernel.__id__" }
-    
+
     # Ruby has Kernel#sprintf and documentation has Kernel#sprintf
     assert_irb_help("Kernel#sprintf") { help { sprintf } }
     assert_irb_help("Kernel#sprintf") { help "Object#sprintf" }
     assert_irb_help("Kernel#sprintf") { help "Object.sprintf" }
     assert_irb_help("Kernel#sprintf") { help "Kernel#sprintf" }
     assert_irb_help("Kernel#sprintf") { help "Kernel.sprintf" }
-    
+
     # TODO: For completion - Object method documented in Object
     # TODO: For completion - Object method documented in Kernel
     # TODO: For completion - class methods of both
@@ -187,7 +187,7 @@ class Test_Magic_Help < Test::Unit::TestCase
 
   def test_method_missing
     # We don't want to document Kernel#method_missing
-    
+
     # Time::rfc2822 is defined in time.rb, which is not included.
     m = begin
       Time.method(:rfc2822)
@@ -201,7 +201,7 @@ class Test_Magic_Help < Test::Unit::TestCase
     # TODO: assert_irb_help("Time::rfc2822") { help "Time.rfc2822" }
     assert_irb_help("Time.rfc2822") { help "Time.rfc2822" }
   end
-  
+
   def test_method_missing_explicit
     assert_irb_help("Kernel#method_missing") { help "Kernel#method_missing" }
     assert_irb_help("Kernel#method_missing") { help "Kernel.method_missing" }
@@ -220,7 +220,7 @@ class Test_Magic_Help < Test::Unit::TestCase
     assert_irb_help("File::Stat#size") { help "File::Stat#size" }
     assert_irb_help("File::Stat#size") { help "File::Stat.size" }
   end
-  
+
   def test_private
     # help should ignore public/protected/private
     # private is a private function of Module
@@ -243,7 +243,7 @@ class Test_Magic_Help < Test::Unit::TestCase
 
     assert_irb_help("Module#private") { help { Float::private } }
     assert_irb_help("Module#private") { help { Float.private } }
-    
+
     assert_irb_help("Object#singleton_method_added") { help { "".singleton_method_added } }
     assert_irb_help("Object#singleton_method_added") { help { singleton_method_added } }
   end
