@@ -1,4 +1,4 @@
-task :default => :package
+task :default => :test
 
 desc "Build magic_help package"
 task :package do
@@ -10,13 +10,7 @@ task :package do
 
   files = FileList["lib/*.rb", "test/*.rb", "Rakefile", "*.gemspec"]
   files = files.map{|fn| "#{project}/#{fn}" }
-
   sh "gem", "build", "#{project}.gemspec"
-  mv FileList["*.gem"].to_a, "../website/packages/"
-  Dir.chdir("..") {
-    sh "tar", "-z", "-c", "-f", "website/packages/#{project}-#{version}.tar.gz", *files
-    sh "zip", "-q", "website/packages/#{project}-#{version}.zip", *files
-  }
 end
 
 desc "Run tests with default Ruby"
