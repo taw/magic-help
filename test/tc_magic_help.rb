@@ -1,8 +1,8 @@
-#!/usr/bin/env ruby -Ilib
+#!/usr/bin/env ruby
 
-require 'minitest/autorun'
-require 'magic_help'
-require 'fileutils'
+require "minitest/autorun"
+require "magic_help"
+require "fileutils"
 
 $irb_help = nil
 

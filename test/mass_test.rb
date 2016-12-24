@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby -Ilib
+#!/usr/bin/env ruby
 
 # This only tests how many items magic/help BREAKS,
 # that is - how many would work otherwise.
