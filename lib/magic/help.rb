@@ -8,54 +8,58 @@ module IRB::ExtendCommandBundle # :nodoc:
   @ALIASES.delete_if{|a| a == [:help, :irb_help, NO_OVERRIDE]}
 end
 
-# help_hacks is used to postprocess queries in two cases:
-# * help "Foo.bar" queries - res defined, more hacks
-# * help { Foo.bar } queries - res not defined, fewer hacks
-def help_hacks(m, res=nil)
-  # Kernel#method_missing here means class was found but method wasn't
-  # It is possible that such method exists, it was simply not included.
-  # Example - Time::rfc2822 from time.rb.
-  #
-  # Do not correct it if actual method_missing was called.
-  if res and m == "Kernel#method_missing"
-      m = res unless res =~ /\A(?:.*)(?:\#|::|\.)method_missing\Z/
-  # Most classes do not override Foo::new, but provide new documentation anyway !
-  # Two cases are possible
-  # * Class#new is used
-  # * Bar::new is used, for Bar being some ancestor of Foo
-  elsif res and (m =~ /\A(.*)\#new\Z/ or m =~ /\A(.*)::new\Z/)
-    cls = $1
-    # Do not correct requests for Foo#new
-    # If Foo#new became Class#new, it must have been
-    # by some evil metaclass hackery.
-    #
-    # Foo.new or Foo::new both become Foo::new
-    if res =~ /\A(.*)(::|\.)new\Z/
-      cls_requested, k = $1, $2
-      # Condition just to get "Class#new" working correctly
-      # Otherwise it would be changed to "Class::new"
-      m = "#{cls_requested}::new" unless cls == cls_requested
-    end
-  end
-
-  # Most Kernel methods are documented as if they were Object methods.
-  # * private are in Kernel (except for four below)
-  # * public are in Object (all of them)
-  if RUBY_VERSION > '1.9'
-    # Ruby 1.9 hacks go here
-  else
-    if m =~ /\AKernel(\#|::|\.)([^\#\:\.]+)\Z/
-      k, mn = $1, $2
-      exceptions = ["singleton_method_added", "remove_instance_variable", "singleton_method_removed", "singleton_method_undefined"]
-      correctly_located_docs = Kernel.private_instance_methods - exceptions
-      unless correctly_located_docs.include?(mn)
-        m = "Object#{k}#{mn}"
+module Magic
+  module Help
+    # Magic::Help.postprocess is used to postprocess queries in two cases:
+    # * help "Foo.bar" queries - res defined, more hacks
+    # * help { Foo.bar } queries - res not defined, fewer hacks
+    def self.postprocess(m, res=nil)
+      # Kernel#method_missing here means class was found but method wasn't
+      # It is possible that such method exists, it was simply not included.
+      # Example - Time::rfc2822 from time.rb.
+      #
+      # Do not correct it if actual method_missing was called.
+      if res and m == "Kernel#method_missing"
+          m = res unless res =~ /\A(?:.*)(?:\#|::|\.)method_missing\Z/
+      # Most classes do not override Foo::new, but provide new documentation anyway !
+      # Two cases are possible
+      # * Class#new is used
+      # * Bar::new is used, for Bar being some ancestor of Foo
+      elsif res and (m =~ /\A(.*)\#new\Z/ or m =~ /\A(.*)::new\Z/)
+        cls = $1
+        # Do not correct requests for Foo#new
+        # If Foo#new became Class#new, it must have been
+        # by some evil metaclass hackery.
+        #
+        # Foo.new or Foo::new both become Foo::new
+        if res =~ /\A(.*)(::|\.)new\Z/
+          cls_requested, k = $1, $2
+          # Condition just to get "Class#new" working correctly
+          # Otherwise it would be changed to "Class::new"
+          m = "#{cls_requested}::new" unless cls == cls_requested
+        end
       end
+
+      # Most Kernel methods are documented as if they were Object methods.
+      # * private are in Kernel (except for four below)
+      # * public are in Object (all of them)
+      if RUBY_VERSION > '1.9'
+        # Ruby 1.9 hacks go here
+      else
+        if m =~ /\AKernel(\#|::|\.)([^\#\:\.]+)\Z/
+          k, mn = $1, $2
+          exceptions = ["singleton_method_added", "remove_instance_variable", "singleton_method_removed", "singleton_method_undefined"]
+          correctly_located_docs = Kernel.private_instance_methods - exceptions
+          unless correctly_located_docs.include?(mn)
+            m = "Object#{k}#{mn}"
+          end
+        end
+      end
+      m
     end
   end
-
-  m
 end
+
 
 # help is a Do-What-I-Mean help function.
 # It can be called with either a block or a single argument.
@@ -91,20 +95,20 @@ def help(*args)
       end
     }
 
-    tf = lambda{|*args|
+    tf = lambda{|*xargs|
       return if done
-      event = args[0]
+      event = xargs[0]
       if argument_error
         if event == 'return'
           done = true
           # For functions called with wrong number of arguments,
           # call event is not generated (function is never called),
           # but the return event is !
-          call_event = args
+          call_event = xargs
           throw :magically_irb_helped
         end
       elsif event == 'call' or event == 'c-call'
-        call_event = args
+        call_event = xargs
         if call_event.values_at(0, 3, 5) == ['c-call', :new, Class] and
           eval("self", call_event[4]) == ArgumentError
           argument_error = true
@@ -157,7 +161,7 @@ def help(*args)
           end
         end
       end
-      query = help_hacks(query)
+      query = Magic::Help.postprocess(query)
       irb_help query
       return
     # Handle normal call events
@@ -180,52 +184,52 @@ def help(*args)
       else
         query = "#{cls}##{meth}"
       end
-      query = help_hacks(query)
+      query = Magic::Help.postprocess(query)
       irb_help query
       return
     end
-elsif !args.empty?
-  res = args[0]
-else
-  # No block, no arguments
-  return
-end
+  elsif !args.empty?
+    res = args[0]
+  else
+    # No block, no arguments
+    return
+  end
 
-query = case res
-when Module
-    res.to_s
-when UnboundMethod, Method
-    help_method_extract(res)
-when /\A(.*)(#|::|\.)(.*)\Z/
+  query = case res
+  when Module
+      res.to_s
+  when UnboundMethod, Method
+      help_method_extract(res)
+  when /\A(.*)(#|::|\.)(.*)\Z/
     cp, k, m = $1, $2, $3
     #puts "help for string : <#{cp}> <#{k}> <#{m}>"
     begin
       # For multielement paths like File::Stat const_get must be
       # called multiple times, that is:
       # Object.const_get("File").const_get("Stat")
-      c = cp.split(/::/).inject(Object){|c, path_elem| c.const_get(path_elem) }
+      cls = cp.split(/::/).inject(Object){|c, path_elem| c.const_get(path_elem) }
       #puts "Const is: <#{c.inspect}>"
       case k
       when "#"
-        m = c.instance_method(m)
+        m = cls.instance_method(m)
         m = help_method_extract(m)
       when "::"
-        m = c.method(m)
+        m = cls.method(m)
         # Make sure a module method is returned
         # It fixes `Class::new' resolving to `Class#new'
         # (Class::new and Class#new are the same thing,
         # but their documentations are different)
         m = help_method_extract(m)
-        m = m.sub(/\#/, "::") if c == Class && m == "Class#new"
+        m = m.sub(/\#/, "::") if cls == Class && m == "Class#new"
       when "."
         begin
-          m = c.instance_method(m)
+          m = cls.instance_method(m)
         rescue NameError
-          m = c.method(m)
+          m = cls.method(m)
         end
         m = help_method_extract(m)
       end
-      help_hacks(m, res)
+      Magic::Help.postprocess(m, res)
     rescue NameError
       res
     end

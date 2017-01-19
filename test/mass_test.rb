@@ -68,7 +68,7 @@ cl_fi = []
 docs_class.each{|class_path|
   class_name = class_path.join("::")
   begin
-    cls = class_path.inject(Object){|cls,path_elem| cls.const_get(path_elem)}
+    cls = class_path.inject(Object){|c,path_elem| c.const_get(path_elem)}
   rescue NameError
     rv = try_help class_name
     if rv == class_name
@@ -111,7 +111,7 @@ docs_cmeth.each{|path|
   class_path, method_name = path[0..-2], path[-1]
   class_name = class_path.join("::")
   begin
-    cls = class_path.inject(Object){|cls,path_elem| cls.const_get(path_elem)}
+    cls = class_path.inject(Object){|c,path_elem| c.const_get(path_elem)}
   rescue NameError
     expected = "#{class_name}::#{method_name}"
     rv = try_help expected
@@ -160,7 +160,7 @@ docs_imeth.each{|path|
   class_path, method_name = path[0..-2], path[-1]
   class_name = class_path.join("::")
   begin
-    cls = class_path.inject(Object){|cls,path_elem| cls.const_get(path_elem)}
+    cls = class_path.inject(Object){|c,path_elem| c.const_get(path_elem)}
   rescue NameError
     expected = "#{class_name}.#{method_name}"
     rv = try_help expected
