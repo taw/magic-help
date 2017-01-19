@@ -1,15 +1,14 @@
-require "irb"
-require "irb/extend-command"
-
-# Now let's hack irb not to alias irb_help -> help
-# It saves us a silly warning at startup:
-#     irb: warn: can't alias help from irb_help.
-module IRB::ExtendCommandBundle # :nodoc:
-  @ALIASES.delete_if{|a| a == [:help, :irb_help, NO_OVERRIDE]}
-end
+require_relative "help/irb"
 
 module Magic
   module Help
+    def self.help_method_extract(m)
+      unless m.inspect =~ %r[\A#<(?:Unbound)?Method: (.*?)>\Z]
+        raise "Cannot parse result of #{m.class}#inspect: #{m.inspect}"
+      end
+      $1.sub(/\A.*?\((.*?)\)(.*)\Z/){ "#{$1}#{$2}" }.sub(/\./, "::").sub(/#<Class:(.*?)>#/) { "#{$1}::" }
+    end
+
     # Magic::Help.postprocess is used to postprocess queries in two cases:
     # * help "Foo.bar" queries - res defined, more hacks
     # * help { Foo.bar } queries - res not defined, fewer hacks
@@ -43,7 +42,7 @@ module Magic
       # Most Kernel methods are documented as if they were Object methods.
       # * private are in Kernel (except for four below)
       # * public are in Object (all of them)
-      if RUBY_VERSION > '1.9'
+      if RUBY_VERSION > "1.9"
         # Ruby 1.9 hacks go here
       else
         if m =~ /\AKernel(\#|::|\.)([^\#\:\.]+)\Z/
@@ -68,7 +67,7 @@ module Magic
         done = false
         res_mm = nil
         argument_error = false
-        base_level_module = (RUBY_VERSION > '1.9' ? BasicObject : Kernel)
+        base_level_module = (RUBY_VERSION > "1.9" ? BasicObject : Kernel)
 
         # We want to capture calls to method_missing too
         original_method_missing = base_level_module.instance_method(:method_missing)
@@ -82,7 +81,7 @@ module Magic
           return if done
           event = xargs[0]
           if argument_error
-            if event == 'return'
+            if event == "return"
               done = true
               # For functions called with wrong number of arguments,
               # call event is not generated (function is never called),
@@ -90,15 +89,15 @@ module Magic
               call_event = xargs
               throw :magically_irb_helped
             end
-          elsif event == 'call' or event == 'c-call'
+          elsif event == "call" or event == "c-call"
             call_event = xargs
-            if call_event.values_at(0, 3, 5) == ['c-call', :new, Class] and
+            if call_event.values_at(0, 3, 5) == ["c-call", :new, Class] and
               eval("self", call_event[4]) == ArgumentError
               argument_error = true
             else
               done = true
               # Let Kernel#method_missing run, otherwise throw
-              unless call_event.values_at(0, 3, 5) == ['call', :method_missing, base_level_module]
+              unless call_event.values_at(0, 3, 5) == ["call", :method_missing, base_level_module]
                 throw :magically_irb_helped
               end
             end
@@ -176,9 +175,9 @@ module Magic
 
       query = case res
       when Module
-          res.to_s
+        res.to_s
       when UnboundMethod, Method
-          help_method_extract(res)
+        help_method_extract(res)
       when /\A(.*)(#|::|\.)(.*)\Z/
         cp, k, m = $1, $2, $3
         #puts "help for string : <#{cp}> <#{k}> <#{m}>"
@@ -208,7 +207,7 @@ module Magic
             end
             m = help_method_extract(m)
           end
-          Magic::Help.postprocess(m, res)
+          postprocess(m, res)
         rescue NameError
           res
         end
@@ -220,31 +219,4 @@ module Magic
       return query
     end
   end
-end
-
-
-# help is a Do-What-I-Mean help function.
-# It can be called with either a block or a single argument.
-# When called with single argument, it behaves like normal
-# help function, except for being much smarter:
-#
-#  help "Array"         - help on Array
-#  help "Array#sort"    - help on Array#sort
-#  help "File#sync="    - help on IO#sync=
-#
-#  help { [].sort }     - help on Array#sort
-#  help { obj.foo = 1 } - help on obj.foo=
-#  help { Array }       - help on Array
-#  help { [] }          - help on Array
-#  help { Dir["*"] }    - help on Dir::[]
-def help(*args, &block)
-  query = Magic::Help.resolve_help_query(*args, &block)
-  irb_help(query) if query
-end
-
-def help_method_extract(m) # :nodoc:
-  unless m.inspect =~ %r[\A#<(?:Unbound)?Method: (.*?)>\Z]
-    raise "Cannot parse result of #{m.class}#inspect: #{m.inspect}"
-  end
-  $1.sub(/\A.*?\((.*?)\)(.*)\Z/){ "#{$1}#{$2}" }.sub(/\./, "::").sub(/#<Class:(.*?)>#/) { "#{$1}::" }
 end
