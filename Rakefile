@@ -15,8 +15,8 @@ end
 
 desc "Run tests with default Ruby"
 task :test do
-  sh "test/tc_magic_help.rb"
-  sh "test/mass_test.rb"
+  sh "ruby test/tc_magic_help.rb"
+  sh "ruby test/mass_test.rb"
 end
 
 desc "Clean generated files"

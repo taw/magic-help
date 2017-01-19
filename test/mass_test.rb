@@ -3,7 +3,7 @@
 # This only tests how many items magic/help BREAKS,
 # that is - how many would work otherwise.
 
-require 'magic_help'
+require_relative "../lib/magic_help"
 
 # Use fake irb_help for testing
 $irb_help = nil

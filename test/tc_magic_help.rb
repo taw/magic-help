@@ -1,7 +1,7 @@
 #!/usr/bin/env ruby
 
 require "minitest/autorun"
-require "magic_help"
+require_relative "../lib/magic_help"
 require "fileutils"
 
 $irb_help = nil
