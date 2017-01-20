@@ -47,7 +47,7 @@ class Test_Magic_Help < Minitest::Test
   end
 
   def test_class_method
-    assert_irb_help("Dir::[]"){ Dir[""] }
+    assert_irb_help("Dir#[]"){ Dir[""] }
     m  = Dir.method(:[])
     assert_irb_help("Dir::[]"){ m }
     um = Dir.method(:[]).unbind
@@ -196,9 +196,9 @@ class Test_Magic_Help < Minitest::Test
 
   def test_method_missing_explicit
     assert_irb_help("Kernel#method_missing", "Kernel#method_missing")
-    assert_irb_help("Kernel#method_missing", "Kernel.method_missing")
-    assert_irb_help("Kernel#method_missing", "Float#method_missing")
-    assert_irb_help("Kernel#method_missing", "Float.method_missing")
+    assert_irb_help("BasicObject#method_missing", "Kernel.method_missing")
+    assert_irb_help("BasicObject#method_missing", "Float#method_missing")
+    assert_irb_help("BasicObject#method_missing", "Float.method_missing")
     assert_irb_help("Kernel#method_missing"){ 42.method_missing }
     assert_irb_help("Kernel#method_missing"){ method_missing }
   end
