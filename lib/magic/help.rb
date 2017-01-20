@@ -141,8 +141,7 @@ module Magic
               end
             end
           end
-          query = Magic::Help.postprocess(query)
-          return query
+          return Magic::Help.postprocess(query)
         # Handle normal call events
         elsif call_event
           meth, bind, cls = call_event[3], call_event[4], call_event[5]
@@ -163,14 +162,13 @@ module Magic
           else
             query = "#{cls}##{meth}"
           end
-          query = Magic::Help.postprocess(query)
-          return query
+          return Magic::Help.postprocess(query)
         end
-      elsif !args.empty?
-        res = args[0]
-      else
+      elsif args.empty?
         # No block, no arguments
         return
+      else
+        res = args[0]
       end
 
       query = case res
@@ -216,7 +214,7 @@ module Magic
       else
         res.class.to_s
       end
-      return query
+      query
     end
   end
 end
