@@ -101,12 +101,13 @@ class Test_Magic_Help < Minitest::Test
   end
 
   def test_operators
-    assert_irb_help("Fixnum#+"){ 2 + 2 }
-    assert_irb_help("Float#+"){ 2.0 + 2.0 }
+    # Ruby apparently optimizes away 2+2, that's awkward...
+    assert_irb_help("Fixnum#**"){ 2 ** 2 }
+    assert_irb_help("Float#**"){ 2.0 ** 2.0 }
     assert_irb_help("Array#[]"){ [][] }
     # =~ is instance method of Kernel, but is documented as instance method of Object
     # assert_irb_help("Kernel#=~"){ [] =~ [] }
-    assert_irb_help("Object#=~"){ [] =~ [] }
+    assert_irb_help("Kernel#=~"){ [] =~ [] }
   end
 
   def test_nil
