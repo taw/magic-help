@@ -51,7 +51,7 @@ class Test_Magic_Help < Minitest::Test
   end
 
   def test_class_method
-    assert_irb_help("Dir#[]"){ Dir[""] }
+    assert_irb_help("Dir::[]"){ Dir[""] }
     m  = Dir.method(:[])
     assert_irb_help("Dir::[]"){ m }
     um = Dir.method(:[]).unbind
