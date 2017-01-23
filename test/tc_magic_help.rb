@@ -232,16 +232,16 @@ class Test_Magic_Help < Minitest::Test
     assert_irb_help("Module#private", "Float.private")
     assert_irb_help("Module#private", "Float::private")
 
-    assert_irb_help("Module#private"){ Module::private }
-    assert_irb_help("Module#private"){ Module.private }
+    assert_irb_help("Module::private"){ Module::private }
+    assert_irb_help("Module::private"){ Module.private }
 
-    assert_irb_help("Module#private"){ Class::private }
-    assert_irb_help("Module#private"){ Class.private }
+    assert_irb_help("Class::private"){ Class::private }
+    assert_irb_help("Class::private"){ Class.private }
 
-    assert_irb_help("Module#private"){ Float::private }
-    assert_irb_help("Module#private"){ Float.private }
+    assert_irb_help("Float::private"){ Float::private }
+    assert_irb_help("Float::private"){ Float.private }
 
-    assert_irb_help("BasicObject#singleton_method_added"){ "".singleton_method_added }
+    assert_irb_help("String#singleton_method_added"){ "".singleton_method_added }
     assert_irb_help("BasicObject#singleton_method_added"){ singleton_method_added }
   end
 end

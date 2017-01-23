@@ -8,11 +8,10 @@ module Magic
       done = false
       res_mm = nil
       argument_error = false
-      base_level_module = BasicObject
 
       # We want to capture calls to method_missing too
-      original_method_missing = base_level_module.instance_method(:method_missing)
-      base_level_module.class_eval {
+      original_method_missing = BasicObject.instance_method(:method_missing)
+      BasicObject.class_eval {
         def method_missing(*args)
           throw :magically_irb_helped, [self, *args]
         end
@@ -38,7 +37,7 @@ module Magic
           else
             done = true
             # Let Kernel#method_missing run, otherwise throw
-            unless call_event.values_at(0, 3, 5) == ["call", :method_missing, base_level_module]
+            unless call_event.values_at(0, 3, 5) == ["call", :method_missing, BasicObject]
               throw :magically_irb_helped
             end
           end
@@ -52,7 +51,7 @@ module Magic
       }
       done = true
       set_trace_func nil
-      base_level_module.instance_eval {
+      BasicObject.instance_eval {
         define_method(:method_missing, original_method_missing)
         # It was originally private, restore it as such
         private :method_missing
