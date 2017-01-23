@@ -4,15 +4,21 @@ module Magic
       call_event = nil
       done = false
       res = nil
+
       # We want to capture calls to method_missing too
       # This should be available via TracePoint but isn't
       original_method_missing = BasicObject.instance_method(:method_missing)
       BasicObject.class_eval do
-        define_method(:method_missing) do |m, *args|
+        define_method(:method_missing) do |*args|
+          if args.empty?
+            # This is presumably called on self, and without arguments
+            throw :done, {cls: method(:method_missing).owner, meth: :method_missing, self: self}
+          end
+
           if self.is_a?(Class)
-            throw :done, {cls: self.singleton_class, meth: m, self: self}
+            throw :done, {cls: self.singleton_class, meth: args[0], self: self}
           else
-            throw :done, {cls: self.class, meth: m, self: self}
+            throw :done, {cls: self.class, meth: args[0], self: self}
           end
         end
       end

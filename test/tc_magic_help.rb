@@ -204,8 +204,8 @@ class Test_Magic_Help < Minitest::Test
     assert_irb_help("BasicObject#method_missing", "Kernel.method_missing")
     assert_irb_help("BasicObject#method_missing", "Float#method_missing")
     assert_irb_help("BasicObject#method_missing", "Float.method_missing")
-    assert_irb_help("Kernel#method_missing"){ 42.method_missing }
-    assert_irb_help("Kernel#method_missing"){ method_missing }
+    assert_irb_help("BasicObject#method_missing"){ 42.method_missing }
+    assert_irb_help("BasicObject#method_missing"){ method_missing }
   end
 
   def test_longpath
