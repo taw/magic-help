@@ -34,6 +34,10 @@ module Magic
             # Function was called without full number of arguments
             # There doesn't seem to be any way to recover from this in ruby 2.x
             # In 1.8 we'd get extra return event
+            #
+            # It's possible to hack argument name from stack trace,
+            # (with massive hacking)
+            # but not self/class, so it's not most useful
           else
             done = true
             throw :done, {cls: ev.defined_class, meth: ev.method_id, self: ev.self}
