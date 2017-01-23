@@ -25,12 +25,7 @@ end
 # Extract documentation
 
 # FIXME: Hardcoded paths are not cross-platform compatible
-if RUBY_VERSION > '1.9'
-  default_ri_root_path = "/usr/share/ri/1.9/system"
-  default_ri_root_path = "/home/taw/local/ruby1.9.3/share/ri/1.9.1/system/" # OSX ...
-else
-  default_ri_root_path = "/usr/share/ri/1.8/system"
-end
+default_ri_root_path = "/usr/share/ri/1.9/system"
 ri_root_path = ARGV.shift || default_ri_root_path
 
 docs = Dir["#{ri_root_path}/**/*"]

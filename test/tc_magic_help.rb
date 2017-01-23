@@ -5,6 +5,10 @@ require_relative "../lib/magic_help"
 require "fileutils"
 
 class Test_Magic_Help < Minitest::Test
+  def self.test_order
+    :alpha
+  end
+
   def assert_irb_help(expected, *args, &block)
     got = Magic::Help.resolve_help_query(*args, &block)
     if expected == nil
