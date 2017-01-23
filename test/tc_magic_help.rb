@@ -185,20 +185,11 @@ class Test_Magic_Help < Minitest::Test
   end
 
   def test_method_missing
-    # We don't want to document Kernel#method_missing
-
-    # Time::rfc2822 is defined in time.rb, which is not included.
-    m = begin
-      Time.method(:rfc2822)
-    rescue NameError
-      nil
-    end
-    assert_nil(m, "'time.rb' should not be included (it interferes with testing)")
-    assert_irb_help("Time::rfc2822"){ Time::rfc2822 }
-    # TODO: assert_irb_help("Time::rfc2822"){ Time.rfc2822 }
-    assert_irb_help("Time::rfc2822", "Time::rfc2822")
-    # TODO: assert_irb_help("Time::rfc2822", "Time.rfc2822")
-    assert_irb_help("Time.rfc2822", "Time.rfc2822")
+    # Some fake method
+    assert_irb_help("Time::rfc999"){ Time::rfc999 }
+    assert_irb_help("Time::rfc999"){ Time.rfc999 } # is that really best ?
+    assert_irb_help("Time::rfc999", "Time::rfc999")
+    assert_irb_help("Time.rfc999", "Time.rfc999")
   end
 
   def test_method_missing_explicit
