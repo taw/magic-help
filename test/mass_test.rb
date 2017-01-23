@@ -4,6 +4,7 @@
 # that is - how many would work otherwise.
 
 require_relative "../lib/magic_help"
+require "rdoc/ri"
 
 # Use fake irb_help for testing
 $irb_help = nil
@@ -25,7 +26,7 @@ end
 # Extract documentation
 
 # FIXME: Hardcoded paths are not cross-platform compatible
-default_ri_root_path = "/usr/share/ri/1.9/system"
+default_ri_root_path = "#{RDoc::RI::Paths::BASE}/system"
 ri_root_path = ARGV.shift || default_ri_root_path
 
 docs = Dir["#{ri_root_path}/**/*"]
