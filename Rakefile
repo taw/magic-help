@@ -23,3 +23,14 @@ desc "Clean generated files"
 task :clean do
   # Nothing to clean
 end
+
+desc "Build gem"
+task "gem:build" do
+  system "gem build magic-help.gemspec"
+end
+
+desc "Upload gem"
+task "gem:push" => "gem:build" do
+  gem_file = Dir["magic-help-*.gem"][-1] or raise "No gem found"
+  system "gem", "push", gem_file
+end
