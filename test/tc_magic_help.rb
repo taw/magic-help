@@ -104,7 +104,11 @@ class Test_Magic_Help < Minitest::Test
 
   def test_operators
     # Ruby apparently optimizes away 2+2, that's awkward...
-    assert_irb_help("Fixnum#**"){ 2 ** 2 }
+    if RUBY_VERSION < "2.4"
+      assert_irb_help("Fixnum#**"){ 2 ** 2 } # 2.3
+    else
+      assert_irb_help("Integer#**"){ 2 ** 2 } # 2.3
+    end
     assert_irb_help("Float#**"){ 2.0 ** 2.0 }
     assert_irb_help("Array#[]"){ [][] }
     # =~ is instance method of Kernel, but is documented as instance method of Object
