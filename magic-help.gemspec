@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name     = "magic-help"
-  s.version  = "0.20170204"
+  s.version  = "0.20201211"
   s.author   = "Tomasz Wegrzanowski"
   s.email    = "Tomasz.Wegrzanowski@gmail.com"
   s.homepage = "https://github.com/taw/magic-help"

@@ -7,7 +7,11 @@ module Magic
       unless m.inspect =~ %r[\A#<(?:Unbound)?Method: (.*?)>\Z]
         raise "Cannot parse result of #{m.class}#inspect: #{m.inspect}"
       end
-      $1.sub(/\A.*?\((.*?)\)(.*)\Z/){ "#{$1}#{$2}" }.sub(/\./, "::").sub(/#<Class:(.*?)>#/) { "#{$1}::" }
+      $1
+        .sub(/\(\*?\)\z/, "")
+        .sub(/\A.*?\((.*?)\)(.*)\Z/){ "#{$1}#{$2}" }
+        .sub(/\./, "::")
+        .sub(/#<Class:(.*?)>#/) { "#{$1}::" }
     end
 
     # Magic::Help.postprocess is used to postprocess queries in two cases:
